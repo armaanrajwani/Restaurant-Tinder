@@ -1,3 +1,7 @@
+import os
+from dotenv import load_dotenv
+from pathlib import Path
+load_dotenv(Path(__file__).resolve().parent / ".env")
 
 # SQLAlchemy lets Python communicate with the MySQL database.
 from sqlalchemy import create_engine
@@ -10,7 +14,7 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 DATABASE_URL = URL.create(
     drivername="mysql+pymysql",
     username="root",
-    password="Batman2026.",
+    password=os.environ["MYSQL_PASSWORD"],
     host="localhost",
     port=3306,
     database="dishr_test"

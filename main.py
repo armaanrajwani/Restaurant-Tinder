@@ -24,3 +24,7 @@ app.include_router(swipes.router)
 app.include_router(saved.router)
 # Add endpoints for reviews and restaurant ratings.
 app.include_router(reviews.router)
+
+from routes import owners, promotions
+app.include_router(owners.router)
+app.include_router(promotions.router)
