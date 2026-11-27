@@ -13,7 +13,7 @@ from schemas.review import (
     ReviewResponse,
     RestaurantRatingResponse
 )
-from routes.auth import get_current_user
+from routes.auth import require_customer
 
 
 # Groups related API endpoints under one URL prefix.
@@ -33,7 +33,7 @@ router = APIRouter(
 def create_review(
     data: ReviewCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_customer)
 ):
     restaurant = db.get(Restaurant, data.restaurant_id)
 
@@ -64,7 +64,7 @@ def create_review(
 # Returns only the reviews written by the current user.
 def get_my_reviews(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_customer)
 ):
     return (
         db.query(Review)
@@ -142,7 +142,7 @@ def update_review(
     review_id: int,
     data: ReviewUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_customer)
 ):
     review = db.get(Review, review_id)
 
@@ -178,7 +178,7 @@ def update_review(
 def delete_review(
     review_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_customer)
 ):
     review = db.get(Review, review_id)
 

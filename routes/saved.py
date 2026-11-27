@@ -11,7 +11,7 @@ from schemas.saved import (
     SavedRestaurantCreate,
     SavedRestaurantResponse
 )
-from routes.auth import get_current_user
+from routes.auth import require_customer
 
 
 # Groups related API endpoints under one URL prefix.
@@ -31,7 +31,7 @@ router = APIRouter(
 def save_restaurant(
     data: SavedRestaurantCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_customer)
 ):
     restaurant = db.get(Restaurant, data.restaurant_id)
 
@@ -87,7 +87,7 @@ def save_restaurant(
 # Lists restaurants saved by the current user.
 def get_saved_restaurants(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_customer)
 ):
     saved = (
         db.query(SavedRestaurant)
@@ -107,7 +107,7 @@ def get_saved_restaurants(
 def remove_saved_restaurant(
     restaurant_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_customer)
 ):
     saved = (
         db.query(SavedRestaurant)

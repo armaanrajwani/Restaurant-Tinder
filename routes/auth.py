@@ -8,6 +8,7 @@ from sqlalchemy.exc import IntegrityError
 
 from database import get_db
 from models.user import User
+from models.extensions import Customer, RestaurantOwner
 from schemas.user import (
     UserCreate,
     UserLogin,
@@ -60,6 +61,8 @@ def register_user(
 
     try:
         # Save the change to MySQL.
+        db.flush()
+        db.add(Customer(user_id=new_user.user_id))
         db.commit()
     except IntegrityError:
         # Undo pending changes after a database error.
@@ -131,3 +134,14 @@ def get_current_user(
         )
 
     return user
+
+
+def require_customer(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if not db.get(Customer, current_user.user_id):
+        raise HTTPException(403, 'Customer account required')
+    return current_user
+
+def require_owner(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if not db.get(RestaurantOwner, current_user.user_id):
+        raise HTTPException(403, 'Restaurant owner account required')
+    return current_user

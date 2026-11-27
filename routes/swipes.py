@@ -8,7 +8,8 @@ from models.user import User
 from models.restaurant import Restaurant
 from models.swipe import RestaurantSwipe
 from schemas.swipe import SwipeCreate, SwipeResponse
-from routes.auth import get_current_user
+from routes.auth import require_customer
+from services.swipe_limit import consume_swipe, remaining, today
 
 # Groups related API endpoints under one URL prefix.
 router = APIRouter(
@@ -22,7 +23,7 @@ router = APIRouter(
 def create_swipe(
     swipe: SwipeCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_customer)
 ):
     restaurant = db.get(Restaurant, swipe.restaurant_id)
 
@@ -31,6 +32,8 @@ def create_swipe(
             status_code=404,
             detail="Restaurant not found"
         )
+
+    consume_swipe(db, current_user.user_id)
 
     # A user can have only one swipe choice per restaurant.
     existing_swipe = (
@@ -73,7 +76,7 @@ def create_swipe(
 # Lists the current user’s recorded restaurant choices.
 def get_my_swipes(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_customer)
 ):
     return (
         db.query(RestaurantSwipe)
@@ -90,7 +93,7 @@ def get_my_swipes(
 def delete_swipe(
     restaurant_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_customer)
 ):
     swipe = (
         db.query(RestaurantSwipe)
@@ -112,3 +115,9 @@ def delete_swipe(
     db.commit()
 
     return {"message": "Swipe deleted successfully"}
+
+
+@router.get('/remaining')
+def get_remaining(db: Session = Depends(get_db), current_user: User = Depends(require_customer)):
+    left = remaining(db, current_user.user_id)
+    return {'limit': 10, 'used': 10-left, 'remaining': left, 'date': today()}
